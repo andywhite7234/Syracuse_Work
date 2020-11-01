@@ -1,0 +1,311 @@
+<html>
+    <!-- this is css script i coppied and it is the heading in a fixed postion at the top of the webpage-->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script> 
+    <!-- the followin scripts are for the us map - remember that any chart scripts need to be called first here-->
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+    <script src="https://code.highcharts.com/maps/highmaps.js"></script>
+    <script src="https://code.highcharts.com/maps/modules/data.js"></script>
+    <script src="https://code.highcharts.com/maps/modules/drilldown.js"></script>
+    <script src="https://code.highcharts.com/maps/modules/exporting.js"></script>
+    <script src="https://code.highcharts.com/maps/modules/offline-exporting.js"></script>
+    <script src="https://code.highcharts.com/mapdata/countries/us/us-all.js"></script>
+
+
+    <div id="container"></div>
+    <link href="https://netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css" rel="stylesheet">
+
+    <head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script> <!-- this can be deleted later, this was to test displays-->
+</head>
+
+    <style>
+        body{padding-top: 60px;
+            padding-bottom: 40px;
+            }
+        .fixed-header, .fixed-footer{
+            width: 100%;
+            position:fixed;
+            background: #333;
+            padding: 10px 0;
+            color: #fff;
+        }
+        .fixed-header{
+            top: 0;
+        }
+        .fixed-footer{
+            bottom: 0;
+        }
+        .container{
+            width: 80%;
+            margin: 0 auto; /* center the div horizontally */
+
+
+        }
+        nav a{
+            color: #fff;
+            text-decoration: solid;
+            padding: 7px 25px;
+            display: inline-block;
+        }
+
+    </style>
+<body>
+    <div>
+        <div class="fixed-header">  <!--{% for list_element in county_data %} {{list_element}} {% endfor %} -->
+            <nav>
+                <a href="/"><span style="font-size: 40px;">S&P Global Ratings Dashboard </span></a>
+            </nav>
+        </div>
+
+
+    </div>
+<!-- this is where the ultimate chart will go, needs to be in the body-->
+<!-- this is the canvas where it will create the chart-->
+
+<!-- <div>        ok this is where i picked up -->
+    <div style="width: 100%; overflow:auto">
+    <!-- the following will break up the dashboard into three charts notice syle and canvas (from charts.js website)-->
+    <div class="col-lg-3" style="float: left; width: 20%; max-height: 750px; overflow: scroll; overflow-x:hidden;">
+    <!-- <div class="col-lg-3" style="float: left; max-height: 750px;max-width:400px; overflow: scroll; overflow-x:hidden;">  -->
+        <br>
+        <h1>Defaults </h1>   
+
+        <div>
+            <canvas id="myChart" style="width: 19%; height: 450px;"></canvas>
+           <!-- <canvas id="myChart" style="width: 300px; height: 750px;"></canvas> -->
+        </div>
+    </div>
+    <div class="col-lg-6"></div>
+        <!-- I pasted this from https://jsfiddle.net/gh/get/library/pure/highcharts/highcharts/tree/master/samples/maps/demo/map-drilldown, and
+        updated the ID -->
+        <br>
+        <div id="mapChart" style="float: left; width: 60%;height: 650px;"></div>
+        <!--<div id="mapChart" style="float: middle; height: 650px; width: 700px;"></div>   float: middle; max-height: 1000px; min-width: 400px; max-width: 700px; margin: 4 auto;-->
+        
+        <div class="col-lg-9"style="float: left; width: 19%; max-height: 750px; overflow: scroll; overflow-x:hidden;">
+    <!--<div class="col-lg-9"style="float: right; max-height: 750px;max-width:300px; overflow: scroll; overflow-x:hidden;"> -->
+        <h1>Defaults </h1>   
+
+        <div>
+            <canvas id="myChart2"style="width: 19%; height: 450px;"></canvas>
+
+            <!--<canvas id="myChart2" style="width: 350px; height: 750px;"></canvas> --> 
+        </div>
+    </div>
+    </div>
+</div>
+
+
+
+</body>
+
+<!-- in order to pass a string list as a variable you have to: {{varA|safe}}<textarea id="whereToPrint" style="width:1000px;height:1000px"></textarea> -->
+<script>
+
+var ctx = document.getElementById('myChart').getContext('2d');
+var chart = new Chart(ctx, {
+    // The type of chart we want to create
+    type: 'horizontalBar',
+
+    // The data for our dataset
+    data: {
+        labels: {{state_names|safe}},    
+        datasets: [{
+            label: 'Number of Defaults',
+            backgroundColor: 'rgb(255, 51, 51)',
+            borderColor: 'rgb(255, 51, 51)',
+            data: {{vals|safe}}
+        }]
+    },
+
+    // Configuration options go here
+    options: {}
+});
+
+var ctx = document.getElementById('myChart2').getContext('2d');
+var chart = new Chart(ctx, {
+    // The type of chart we want to create
+    type: 'horizontalBar',
+
+    // The data for our dataset
+    data: {
+        labels: {{county_names|safe}},    
+        datasets: [{
+            label: 'Number of Defaults',
+            backgroundColor: 'rgb(255, 51, 51)',
+            borderColor: 'rgb(255, 51, 51)',
+            data: {{county_values|safe}}
+        }]
+    },
+
+    // Configuration options go here
+    options: {}
+});
+
+var state_data1 = {{state_data|safe}};
+var c_data = {{county_data1 | safe}}
+
+//document.getElementById("whereToPrint").innerHTML = JSON.stringify(state_data1, null, 4);
+var data = Highcharts.geojson(Highcharts.maps['countries/us/us-all']),
+    separators = Highcharts.geojson(Highcharts.maps['countries/us/us-all'], 'mapline'),
+    // Some responsiveness
+    small = $('#mapChart').width() < 400;
+
+// Set drilldown pointers
+$.each(data, function (i) {
+    this.drilldown = this.properties['hc-key'];
+   // this.value = i; // Non-random bogus data
+});
+this.value = state_data1['value'];
+//var cdata = {{county_data1 |safe}};
+
+// Instantiate the map
+Highcharts.mapChart('mapChart', {
+    chart: {
+        events: {
+            drilldown: function (e) {
+                if (!e.seriesOptions) {
+                    var chart = this,
+                        mapKey = 'countries/us/' + e.point.drilldown + '-all',
+                        // Handle error, the timeout is cleared on success
+                        fail = setTimeout(function () {
+                            if (!Highcharts.maps[mapKey]) {
+                                chart.showLoading('<i class="icon-frown"></i> Failed loading ' + e.point.name);
+                                fail = setTimeout(function () {
+                                    chart.hideLoading();
+                                }, 1000);
+                            }
+                        }, 3000);
+
+                    // Show the spinner
+                    chart.showLoading('<i class="icon-spinner icon-spin icon-3x"></i>'); // Font Awesome spinner
+                    //var testing = {{county_data | safe}};
+                    // Load the drilldown map
+                    $.getScript('https://code.highcharts.com/mapdata/' + mapKey + '.js', function () {
+
+                        data = Highcharts.geojson(Highcharts.maps[mapKey]);
+                        //this grabs the hc-key code from the data variable (sourced from highcharts): format is in an object
+                        const new_hckey = data.map(element => element.properties['hc-key']);
+                        //next we take the new_hckey element and we effectively "vlookup", it doesn't quite get the format, but it does
+                        //match the hc-key  from our dataset to highcharts
+                        let merged = [];
+
+                        for(let i=0; i<new_hckey.length; i++) {
+                            merged.push({
+                            ...new_hckey[i], 
+                            ...(c_data.find((itmInner) => itmInner['hc-key'] === new_hckey[i]))}
+                            );
+                        };
+                        
+
+                        // loop through our highcharts "data" object, but assign the value t
+                        $.each(data, function (i) {
+                            this.value = merged[i]['value'];
+                           // document.getElementById("whereToPrint").innerHTML = JSON.stringify(merged[i]['value'],null,4);
+                        });
+                        //this.value = merged['value']
+
+                        // Hide loading and add series
+                        chart.hideLoading();
+                        clearTimeout(fail);
+                        chart.addSeriesAsDrilldown(e.point, {
+                            name: e.point.name,
+                            data: data,
+                            dataLabels: {
+                                enabled: true,
+                                format: '{point.name}'
+                            }
+                        });
+                    });
+                }
+
+                this.setTitle(null, { text: e.point.name });
+            },
+            drillup: function () {
+                this.setTitle(null, { text: '' });
+            }
+        }
+    },
+
+    title: {
+        text: 'Defaults By Region'
+    },
+
+    subtitle: {
+        text: '',
+        floating: true,
+        align: 'right',
+        y: 50,
+        style: {
+            fontSize: '16px'
+        }
+    },
+
+    legend: small ? {} : {
+        layout: 'vertical',
+        align: 'right',
+        verticalAlign: 'middle'
+    },
+
+    colorAxis: {
+        min: 0,
+        minColor: '#E6E7E8',
+        maxColor: '#005645'
+    },
+
+    mapNavigation: {
+        enabled: true,
+        buttonOptions: {
+            verticalAlign: 'bottom'
+        }
+    },
+
+    plotOptions: {
+        map: {
+            states: {
+                hover: {
+                    color: '#EEDD66'
+                }
+            }
+        }
+    },
+
+    series: [{
+        data: state_data1,
+        mapData: data,
+        name: 'USA',
+        drilldown: state_data1,
+        dataLabels: {
+            enabled: true,
+            format: '{point.properties.postal-code}'
+        }
+    }, {
+        type: 'mapline',
+        data: separators,
+        color: 'silver',
+        enableMouseTracking: false,
+        animation: {
+            duration: 500
+        }
+    }],
+
+    drilldown: {
+        activeDataLabelStyle: {
+            color: '#FFFFFF',
+            textDecoration: 'none',
+            textOutline: '1px #000000'
+        },
+        drillUpButton: {
+            relativeTo: 'spacingBox',
+            position: {
+                x: 0,
+                y: 60
+            }
+        }
+    }
+});
+    </script>
+
+
+</div>
+</html>
