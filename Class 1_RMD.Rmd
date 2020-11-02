@@ -1,0 +1,98 @@
+---
+title: "Class 1 RMD"
+author: "Andy White"
+date: "October 3, 2019"
+output:
+  word_document: default
+  html_document: default
+---
+
+# R Programming Is legit
+
+## See below for a basic plot of Iris:
+``` {r test,echo=FALSE}
+data("iris")
+
+plot(iris)
+
+
+```
+
+
+**Bold**
+
+* The title of the first col using an R function: `r colnames(iris[1]) `
+
+
+```{r bunch,echo=FALSE,warning=FALSE,message=FALSE}
+#below stops the code and any execution from being shown in your document. Important
+knitr::opts_chunk$set(echo = TRUE, error = T)
+# Can't get into programming without dealing with if's. Unavoidable, but similar to excel, but far easier to have 100s of scenarios
+if (any(iris$Sepal.Length > 6)) {
+  count_of_sepal <- paste("There are ",sum(iris$Sepal.Length > 7),
+                          sep = "")
+}else if(any(iris$Sepal.Length < 6 & iris$Sepal.Length >0)){count_of_sepal<- "There are no flowers with sepal length greater than 6"}else {
+  "Whoa! There's an error in your code homeslice"
+  }
+
+
+```
+
+How many flowers have sepal length less than 6?
+
+**`r count_of_sepal `**
+
+# Now onto the main event. Real life messy data. YIKESSSSSSSSS
+```{r cmbs_data,echo=FALSE,warning=FALSE,message=FALSE}
+knitr::opts_chunk$set(echo = TRUE, error = T)
+#when knitting things together have to call the library. However note that the install.package function is commented out. if you have install.package in RMD it returns an error
+#install.packages("ggplot2")
+library(ggplot2)
+#install.packages("ggmap")
+library(ggmap)
+#install.packages(zipcode)
+library(zipcode)
+#corresponding latitude and longitude for each zip code. 
+data("zipcode")
+
+#install.packages("readxl")
+library(readxl)
+#sometimes excel docs have a bunch of tabs of data you don't want. use sheet = "xxxx" in the read_excel function
+######## PLEASE UPDATE WITH YOUR FILE LOCATION ######################################
+default <- read_excel("C:/Users/andy_white/Desktop/Projects/R/SP_course/SP_Training/CMBS_Practice_Data.xlsx",sheet = "default",col_names = T)
+
+#call the following columns
+default2 <- data.frame(Loan_stat = default$`Loan status at maturity`,Vintage=default$VINTAGE, Prop_type=default$PROPERTY_TYPE,                        Appraised=as.numeric(default$APPRD_VAL_AMT),Loss_sev=as.numeric(default$LOSS_AMT),
+                  DY=as.numeric(default$`Debt Yield for Most recent available period`),Orig_bal=as.numeric(default$LOAN_ORIG_BAL_AMT),
+                  City=default$CITY)
+
+#fun little function
+#colnames(default2)
+#Ok now a little bit of that cleaning
+#this will remove all values in the DY column 
+default2 <- default2[!(default2$DY=="NO DY"),]
+default2$LTV <- default2$Orig_bal/default2$Appraised
+default2 <- default2[!is.na(default2$DY),]
+default2 <- default2[!is.na(default2$Appraised),]
+default2 <- default2[!is.na(default2$Loss_sev),]
+
+plot(default2)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
